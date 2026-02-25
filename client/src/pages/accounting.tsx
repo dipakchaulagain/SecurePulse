@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowUpDown, Clock, Search, Download, Calendar as CalendarIcon, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -25,14 +26,25 @@ import { cn } from "@/lib/utils";
 
 function formatDuration(startTime: string, endTime: string | null) {
   if (!endTime) return "—";
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-  const totalMinutes = differenceInMinutes(end, start);
-  if (totalMinutes < 1) return "< 1m";
-  const hours = differenceInHours(end, start);
-  const minutes = totalMinutes % 60;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  const start = new Date(startTime).getTime();
+  const end = new Date(endTime).getTime();
+  const diff = end - start;
+
+  if (diff < 0) return "0s";
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const seconds = totalSeconds % 60;
+  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  let parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0 || days > 0) parts.push(`${hours % 24}h`);
+  if (minutes > 0 || hours > 0 || days > 0) parts.push(`${minutes % 60}m`);
+  parts.push(`${seconds}s`);
+
+  return parts.join(" ");
 }
 
 export default function AccountingPage() {

@@ -11,7 +11,8 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +32,12 @@ export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -63,6 +70,29 @@ export function Layout({ children }: LayoutProps) {
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X /> : <Menu />}
         </Button>
+      </div>
+
+      {/* Global Header (Clock & User) */}
+      <div className="hidden md:flex fixed top-0 right-0 left-64 h-16 bg-card border-b z-40 items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Current Time</span>
+            <span className="text-sm font-mono font-bold text-primary">
+              {format(currentTime, "PPPP HH:mm:ss")}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <p className="text-sm font-medium leading-none">{user?.username}</p>
+            <p className="text-xs text-muted-foreground mt-1 capitalize">{user?.role}</p>
+          </div>
+          <Avatar className="w-9 h-9 border border-border">
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {user?.username.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
       </div>
 
       {/* Sidebar Navigation */}
@@ -127,7 +157,7 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)] md:h-screen p-4 md:p-6 bg-muted/20">
+      <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)] md:h-screen pt-4 md:pt-20 p-4 md:p-6 bg-muted/20">
         <div className="space-y-6">
           {children}
         </div>

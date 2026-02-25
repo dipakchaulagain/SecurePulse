@@ -280,3 +280,10 @@ export function useRegenerateVpnServerKey() {
     },
   });
 }
+
+export function useVpnUserAuditLogs(id: number) {
+  return useQuery({
+    queryKey: [buildUrl(api.vpnUsers.auditLogs.path, { id })],
+    enabled: !!id,
+  });
+}

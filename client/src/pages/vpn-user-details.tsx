@@ -1,4 +1,4 @@
-import { useVpnUser, useActiveSessions, useSessionHistory } from "@/hooks/use-data";
+import { useVpnUser, useActiveSessions, useSessionHistory, useVpnUserAuditLogs } from "@/hooks/use-data";
 import { useRoute } from "wouter";
 import { format } from "date-fns";
 import {
@@ -14,13 +14,6 @@ import { ArrowLeft, Loader2, User } from "lucide-react";
 import { Link } from "wouter";
 import { useMemo } from "react";
 
-function formatBytes(bytes: number) {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-}
 
 export default function VpnUserDetailsPage() {
     const [, params] = useRoute("/vpn-users/:id");
@@ -29,6 +22,7 @@ export default function VpnUserDetailsPage() {
     const { data: user, isLoading: isLoadingUser } = useVpnUser(id);
     const { data: activeSessions, isLoading: isLoadingActive } = useActiveSessions();
     const { data: historySessions, isLoading: isLoadingHistory } = useSessionHistory();
+    const { data: auditLogs, isLoading: isLoadingAudit } = useVpnUserAuditLogs(id);
 
     const currentSession = activeSessions?.find(
         (s: any) => s.vpnUser.id === id,
@@ -94,23 +88,23 @@ export default function VpnUserDetailsPage() {
                     <CardHeader>
                         <CardTitle>User Metadata</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
+                    <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 text-sm">
+                            <div className="min-w-0">
                                 <p className="text-muted-foreground font-medium">Full Name</p>
-                                <p>{user.fullName || "—"}</p>
+                                <p className="truncate font-medium" title={user.fullName || ""}>{user.fullName || "—"}</p>
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-muted-foreground font-medium">Email</p>
-                                <p>{user.email || "—"}</p>
+                                <p className="break-all font-medium text-primary/90" title={user.email || ""}>{user.email || "—"}</p>
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-muted-foreground font-medium">Contact</p>
-                                <p>{user.contact || "—"}</p>
+                                <p className="break-words">{user.contact || "—"}</p>
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-muted-foreground font-medium">Type</p>
-                                <p>{user.type}</p>
+                                <p className="font-medium">{user.type}</p>
                             </div>
                             <div>
                                 <p className="text-muted-foreground font-medium">Account Status</p>
@@ -175,14 +169,14 @@ export default function VpnUserDetailsPage() {
                     <CardContent className="space-y-4 text-sm">
                         {session ? (
                             <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="min-w-0">
                                         <p className="text-muted-foreground font-medium">Remote IP</p>
-                                        <p className="font-mono">{session.remoteIp || "—"}</p>
+                                        <p className="font-mono break-all">{session.remoteIp || "—"}</p>
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="text-muted-foreground font-medium">VPN IP</p>
-                                        <p className="font-mono">{session.virtualIp || "—"}</p>
+                                        <p className="font-mono break-all">{session.virtualIp || "—"}</p>
                                     </div>
                                 </div>
 
@@ -202,17 +196,6 @@ export default function VpnUserDetailsPage() {
                                     </p>
                                 </div>
 
-                                <div>
-                                    <p className="text-muted-foreground font-medium mb-1">Data Transfer</p>
-                                    <div className="flex gap-4">
-                                        <span className="text-green-600">
-                                            ↑ {formatBytes(session.bytesSent || 0)}
-                                        </span>
-                                        <span className="text-blue-600">
-                                            ↓ {formatBytes(session.bytesReceived || 0)}
-                                        </span>
-                                    </div>
-                                </div>
                             </div>
                         ) : (
                             <p className="text-muted-foreground py-4">
@@ -232,19 +215,57 @@ export default function VpnUserDetailsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                        <div className="min-w-0">
                             <p className="text-muted-foreground font-medium">Static IP</p>
-                            <p className="font-mono bg-muted/50 p-2 rounded mt-1">
+                            <p className="font-mono bg-muted/50 p-2 rounded mt-1 break-all">
                                 {user.ccdStaticIp || "Not configured"}
                             </p>
                         </div>
                         <div>
                             <p className="text-muted-foreground font-medium">Routes</p>
-                            <p className="font-mono bg-muted/50 p-2 rounded mt-1">
-                                {user.ccdRoutes || "No custom routes"}
-                            </p>
+                            <div className="font-mono bg-muted/50 p-2 rounded mt-1 space-y-0.5">
+                                {user.ccdRoutes ? user.ccdRoutes.split(',').map((route: string, i: number) => (
+                                    <div key={i} className="text-xs">{route.trim()}</div>
+                                )) : (
+                                    <p className="text-xs text-muted-foreground italic">No custom routes</p>
+                                )}
+                            </div>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Configuration History</CardTitle>
+                    <CardDescription>
+                        Audit log of detected changes to this user's CCD configuration.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {auditLogs && auditLogs.length > 0 ? (
+                        <div className="space-y-4">
+                            {auditLogs.map((log: any) => (
+                                <div key={log.id} className="border-l-2 border-primary/20 pl-4 py-1">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <Badge variant="outline" className="text-[10px] uppercase">
+                                            {log.action.replace(/_/g, ' ')}
+                                        </Badge>
+                                        <span className="text-xs text-muted-foreground">
+                                            {format(new Date(log.timestamp), "PPp")}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-foreground/80 leading-relaxed">
+                                        {log.details}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground py-4 italic">
+                            No configuration changes recorded.
+                        </p>
+                    )}
                 </CardContent>
             </Card>
         </div>

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -19,11 +19,11 @@ export const users = pgTable("users", {
 
 export const vpnUsers = pgTable("vpn_users", {
   id: serial("id").primaryKey(),
-  commonName: text("common_name").notNull().unique(),
+  commonName: text("common_name").notNull(),
   email: text("email"),
   fullName: text("full_name"),
   contact: text("contact"),
-  type: text("type", { enum: ["Employee", "Vendor", "Dealer", "Others"] }).notNull().default("Others"),
+  type: text("type", { enum: ["Employee", "Vendor", "Client", "Others"] }).notNull().default("Others"),
   status: text("status").notNull().default("offline"),
   lastConnected: timestamp("last_connected"),
   ccdStaticIp: text("ccd_static_ip"),
@@ -33,7 +33,9 @@ export const vpnUsers = pgTable("vpn_users", {
   revocationDate: timestamp("revocation_date"),
   serverId: text("server_id"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  nameServerIdx: uniqueIndex("vpn_users_common_name_server_unique").on(table.commonName, table.serverId),
+}));
 
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
@@ -90,7 +92,7 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
 // === ZOD SCHEMAS ===
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertVpnUserSchema = createInsertSchema(vpnUsers).omit({ id: true, createdAt: true, totalBytesReceived: true, totalBytesSent: true, lastConnected: true, accountStatus: true, expirationDate: true, revocationDate: true });
+export const insertVpnUserSchema = createInsertSchema(vpnUsers).omit({ id: true, createdAt: true, lastConnected: true, accountStatus: true, expirationDate: true, revocationDate: true });
 export const insertSessionSchema = createInsertSchema(sessions).omit({ id: true, startTime: true, endTime: true });
 export const insertVpnServerSchema = createInsertSchema(vpnServers).omit({ id: true, createdAt: true, serverId: true, apiKey: true });
 export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, timestamp: true });

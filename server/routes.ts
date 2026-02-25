@@ -170,6 +170,13 @@ export async function registerRoutes(
     });
   });
 
+  app.get(api.vpnUsers.auditLogs.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const id = parseInt(req.params.id);
+    const logs = await storage.getAuditLogsByEntity("vpn_user", String(id));
+    res.json(logs);
+  });
+
   app.get(api.audit.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const logs = await storage.getAuditLogs();
@@ -398,6 +405,36 @@ export async function registerRoutes(
 
             const routeMatches = [...decoded.matchAll(/push\s+"route\s+([\d.]+)\s+([\d.]+)"/g)];
             const routes = routeMatches.map(m => `${m[1]}/${netmaskToCidr(m[2])}`).join(",");
+
+            // Detect changes for auditing
+            const changes: string[] = [];
+            if (ccdStaticIp !== vpnUser.ccdStaticIp) {
+              changes.push(`Static IP: ${vpnUser.ccdStaticIp || "none"} → ${ccdStaticIp || "none"}`);
+            }
+
+            if (routes !== vpnUser.ccdRoutes) {
+              const oldRoutes = vpnUser.ccdRoutes ? vpnUser.ccdRoutes.split(",").filter(r => r) : [];
+              const newRoutes = routes ? routes.split(",").filter(r => r) : [];
+
+              const added = newRoutes.filter(r => !oldRoutes.includes(r));
+              const removed = oldRoutes.filter(r => !newRoutes.includes(r));
+
+              if (added.length > 0) {
+                changes.push(`Added routes: ${added.join(", ")}`);
+              }
+              if (removed.length > 0) {
+                changes.push(`Removed routes: ${removed.join(", ")}`);
+              }
+            }
+
+            if (changes.length > 0) {
+              await storage.createAuditLog({
+                action: "CCD_CONFIGURATION_UPDATE",
+                entityType: "vpn_user",
+                entityId: String(vpnUser.id),
+                details: `CCD detected via telemetry from ${serverId}: ${changes.join("; ")}`,
+              });
+            }
 
             await storage.updateVpnUser(vpnUser.id, {
               ccdStaticIp: ccdStaticIp || undefined,

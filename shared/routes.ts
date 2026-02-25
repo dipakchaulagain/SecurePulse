@@ -123,6 +123,14 @@ export const api = {
         400: errorSchemas.validation,
       },
     },
+    auditLogs: {
+      method: 'GET' as const,
+      path: '/api/vpn-users/:id/audit-logs' as const,
+      responses: {
+        200: z.array(z.custom<typeof auditLogs.$inferSelect & { user: typeof users.$inferSelect | null }>()),
+        404: errorSchemas.notFound,
+      },
+    },
   },
 
   // Session Monitoring

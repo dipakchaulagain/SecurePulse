@@ -28,7 +28,6 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
-  getVpnUserByCommonName(cn: string): Promise<VpnUser | undefined>;
   getVpnUserByCommonNameAndServer(
     serverId: string,
     cn: string,
@@ -44,6 +43,7 @@ export interface IStorage {
   endSession(id: number): Promise<void>;
   createAuditLog(log: { userId?: number, action: string, entityType: string, entityId?: string, details?: string }): Promise<AuditLog>;
   getAuditLogs(): Promise<(AuditLog & { user: User | null })[]>;
+  getAuditLogsByEntity(entityType: string, entityId: string): Promise<(AuditLog & { user: User | null })[]>;
   getVpnServers(): Promise<VpnServer[]>;
   getVpnServer(id: number): Promise<VpnServer | undefined>;
   getVpnServerByServerId(serverId: string): Promise<VpnServer | undefined>;
@@ -89,14 +89,6 @@ export class DatabaseStorage implements IStorage {
 
   async getVpnUsers(): Promise<VpnUser[]> {
     return await db.select().from(vpnUsers).orderBy(desc(vpnUsers.lastConnected));
-  }
-
-  async getVpnUserByCommonName(commonName: string): Promise<VpnUser | undefined> {
-    const [user] = await db
-      .select()
-      .from(vpnUsers)
-      .where(eq(vpnUsers.commonName, commonName));
-    return user;
   }
 
   async getVpnUserByCommonNameAndServer(
@@ -177,6 +169,16 @@ export class DatabaseStorage implements IStorage {
 
   async getAuditLogs(): Promise<(AuditLog & { user: User | null })[]> {
     return await db.query.auditLogs.findMany({
+      with: { user: true },
+      orderBy: desc(auditLogs.timestamp),
+    });
+  }
+  async getAuditLogsByEntity(entityType: string, entityId: string): Promise<(AuditLog & { user: User | null })[]> {
+    return await db.query.auditLogs.findMany({
+      where: and(
+        eq(auditLogs.entityType, entityType),
+        eq(auditLogs.entityId, entityId)
+      ),
       with: { user: true },
       orderBy: desc(auditLogs.timestamp),
     });

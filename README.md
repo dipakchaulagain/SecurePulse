@@ -19,6 +19,8 @@ Secure web application for monitoring, managing, and auditing OpenVPN telemetry 
 - **Portal User Management** — RBAC with two roles: Admin and Operator. Forced password change on first login for all new users.
 - **Audit Logs** — Comprehensive tracking of all administrative actions.
 - **VPN Server Management** — Register multiple OpenVPN servers, manage API keys for telemetry ingestion.
+- **Global Context** — Real-time digital clock and high-precision connection durations (including seconds).
+- **Responsive Design** — Fluid layouts optimized for 14" laptop screens and mobile devices.
 
 ## User Roles (RBAC)
 
@@ -49,9 +51,10 @@ The `server_id` in the body must match the `server_id` associated with the API K
 The portal enforces strict VPN user identification to prevent data pollution from unregistered clients:
 
 1.  **User Creation**: New VPN users are automatically created **ONLY** when a `USERS_UPDATE` event is received with an `action` of `INITIAL` or `ADDED`.
-2.  **Existence enforced**: Events of type `SESSION_CONNECTED`, `SESSION_DISCONNECTED`, and `CCD_INFO` require the VPN user (matched via `common_name`) to already exist in the database.
-3.  **Filtered Updates**: `USERS_UPDATE` events with actions like `REVOKED` or `EXPIRED` will be ignored if the user does not already exist.
-4.  **Acknowledgment**: The API returns HTTP `202 Accepted` for all structurally valid payloads, even if individual events within the payload are skipped due to missing users (these are logged as warnings on the server).
+2.  **Existence enforced**: Events of type `SESSION_CONNECTED`, `SESSION_DISCONNECTED`, and `CCD_INFO` require the VPN user to already exist in the database.
+3.  **Identity Isolation**: User identity is globally unique per OpenVPN server. The system supports the same `common_name` across different `server_id` environments without data collision.
+4.  **Filtered Updates**: `USERS_UPDATE` events with actions like `REVOKED` or `EXPIRED` will be ignored if the user does not already exist.
+5.  **Acknowledgment**: The API returns HTTP `202 Accepted` for all structurally valid payloads, even if individual events within the payload are skipped due to missing users (these are logged as warnings on the server).
 
 **Payload Examples:**
 
