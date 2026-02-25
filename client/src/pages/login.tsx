@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted/30 p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-      
+
       <Card className="w-full max-w-md shadow-2xl shadow-black/5 border-border/50 bg-background/80 backdrop-blur-xl">
         <CardHeader className="text-center space-y-2 pb-6">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-2">
@@ -36,10 +36,10 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your credentials to access the telemetry portal
+            Enter your credentials to access the SecurePulse portal
           </CardDescription>
         </CardHeader>
-        
+
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {loginError && (
@@ -50,7 +50,7 @@ export default function LoginPage() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
@@ -63,7 +63,7 @@ export default function LoginPage() {
                 className="h-11"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -77,11 +77,11 @@ export default function LoginPage() {
               />
             </div>
           </CardContent>
-          
+
           <CardFooter>
-            <Button 
-              type="submit" 
-              className="w-full h-11 text-base shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+            <Button
+              type="submit"
+              className="w-full h-11 text-base shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
               disabled={isLoggingIn}
             >
               {isLoggingIn ? (

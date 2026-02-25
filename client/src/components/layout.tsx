@@ -105,7 +105,7 @@ export function Layout({ children }: LayoutProps) {
             <Network className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">Telemetry</h1>
+            <h1 className="font-bold text-lg leading-tight">SecurePulse</h1>
             <p className="text-xs text-muted-foreground">System Manager</p>
           </div>
         </div>

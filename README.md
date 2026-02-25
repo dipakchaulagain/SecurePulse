@@ -1,4 +1,4 @@
-# OpenVPN Telemetry Management System
+# SecurePulse
 
 Secure web application for monitoring, managing, and auditing OpenVPN telemetry data.
 
