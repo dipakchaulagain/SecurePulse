@@ -97,12 +97,12 @@ export default function AccountingPage() {
   const exportToCsv = () => {
     if (filteredSessions.length === 0) return;
 
-    const headers = ["Common Name", "Remote IP", "Virtual IP", "Server ID", "Start Time", "End Time", "Duration"];
+    const headers = ["Common Name", "Remote IP", "Virtual IP", "VPN Server", "Start Time", "End Time", "Duration"];
     const rows = filteredSessions.map((s: any) => [
       s.vpnUser?.commonName || "Unknown",
       s.remoteIp || "",
       s.virtualIp || "",
-      s.serverId || "",
+      s.vpnServer?.name || s.serverId || "Global",
       format(new Date(s.startTime), "yyyy-MM-dd HH:mm:ss"),
       s.endTime ? format(new Date(s.endTime), "yyyy-MM-dd HH:mm:ss") : "Active",
       formatDuration(s.startTime, s.endTime),
@@ -264,7 +264,7 @@ export default function AccountingPage() {
                 <TableRow className="hover:bg-transparent bg-muted/30">
                   <TableHead className="text-[10px] font-bold uppercase tracking-wider px-4 h-10">User</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10">Remote IP</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10">Server ID</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10">VPN Server</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10">Started</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10">Ended</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-wider text-right px-4 h-10">Duration</TableHead>
@@ -300,7 +300,7 @@ export default function AccountingPage() {
                           {session.remoteIp || "—"}
                         </TableCell>
                         <TableCell className="text-[10px] font-mono text-muted-foreground/70">
-                          {session.serverId || "Global"}
+                          {session.vpnServer?.name || session.serverId || "Global"}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {format(new Date(session.startTime), "MMM d, HH:mm:ss")}
