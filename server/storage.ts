@@ -36,9 +36,9 @@ export interface IStorage {
   getVpnUser(id: number): Promise<VpnUser | undefined>;
   createVpnUser(user: InsertVpnUser): Promise<VpnUser>;
   updateVpnUser(id: number, user: Partial<InsertVpnUser>): Promise<VpnUser>;
-  getActiveSessions(): Promise<(Session & { vpnUser: VpnUser })[]>;
-  getSessionHistory(): Promise<(Session & { vpnUser: VpnUser })[]>;
-  getAllSessions(): Promise<(Session & { vpnUser: VpnUser })[]>;
+  getActiveSessions(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]>;
+  getSessionHistory(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]>;
+  getAllSessions(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]>;
   createSession(session: InsertSession): Promise<Session>;
   endSession(id: number): Promise<void>;
   createAuditLog(log: { userId?: number, action: string, entityType: string, entityId?: string, details?: string }): Promise<AuditLog>;
@@ -122,26 +122,26 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getActiveSessions(): Promise<(Session & { vpnUser: VpnUser })[]> {
+  async getActiveSessions(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]> {
     return await db.query.sessions.findMany({
       where: eq(sessions.status, "active"),
-      with: { vpnUser: true },
+      with: { vpnUser: true, vpnServer: true },
       orderBy: desc(sessions.startTime),
     });
   }
 
-  async getSessionHistory(): Promise<(Session & { vpnUser: VpnUser })[]> {
+  async getSessionHistory(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]> {
     return await db.query.sessions.findMany({
       where: eq(sessions.status, "closed"),
-      with: { vpnUser: true },
+      with: { vpnUser: true, vpnServer: true },
       orderBy: desc(sessions.endTime),
       limit: 500,
     });
   }
 
-  async getAllSessions(): Promise<(Session & { vpnUser: VpnUser })[]> {
+  async getAllSessions(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]> {
     return await db.query.sessions.findMany({
-      with: { vpnUser: true },
+      with: { vpnUser: true, vpnServer: true },
       orderBy: desc(sessions.startTime),
     });
   }

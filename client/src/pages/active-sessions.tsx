@@ -165,7 +165,7 @@ export default function ActiveSessionsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-[10px] font-mono">
-                          {session.serverId}
+                          {session.vpnServer?.name || session.serverId}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{session.remoteIp}</TableCell>

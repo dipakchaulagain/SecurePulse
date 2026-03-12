@@ -29,7 +29,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useVpnServers } from "@/hooks/use-data";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
 
@@ -40,6 +40,7 @@ export default function VpnUsersPage() {
   const [search, setSearch] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [serverFilter, setServerFilter] = useState("all");
+  const [accountStatusFilter, setAccountStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -51,8 +52,9 @@ export default function VpnUsersPage() {
       u.fullName?.toLowerCase().includes(search.toLowerCase());
     const matchesOnline = onlineOnly ? u.status === "online" : true;
     const matchesServer = serverFilter === "all" || u.serverId === serverFilter;
+    const matchesAccountStatus = accountStatusFilter === "all" || u.accountStatus === accountStatusFilter;
 
-    return matchesSearch && matchesOnline && matchesServer;
+    return matchesSearch && matchesOnline && matchesServer && matchesAccountStatus;
   });
 
   const totalPages = Math.ceil((filteredUsers?.length || 0) / pageSize);
@@ -61,9 +63,9 @@ export default function VpnUsersPage() {
     currentPage * pageSize
   );
 
-  useState(() => {
+  useEffect(() => {
     setCurrentPage(1);
-  }, [search, onlineOnly, serverFilter]);
+  }, [search, onlineOnly, serverFilter, accountStatusFilter]);
 
   return (
     <div className="space-y-6">
@@ -98,6 +100,19 @@ export default function VpnUsersPage() {
                       {server.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={accountStatusFilter} onValueChange={setAccountStatusFilter}>
+                <SelectTrigger className="w-[140px] md:w-[180px]">
+                  <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="VALID">Valid</SelectItem>
+                  <SelectItem value="REVOKED">Revoked</SelectItem>
+                  <SelectItem value="EXPIRED">Expired</SelectItem>
                 </SelectContent>
               </Select>
 
