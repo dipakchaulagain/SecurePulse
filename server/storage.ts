@@ -32,8 +32,8 @@ export interface IStorage {
     serverId: string,
     cn: string,
   ): Promise<VpnUser | undefined>;
-  getVpnUsers(): Promise<VpnUser[]>;
-  getVpnUser(id: number): Promise<VpnUser | undefined>;
+  getVpnUsers(): Promise<(VpnUser & { vpnServer: VpnServer | null })[]>;
+  getVpnUser(id: number): Promise<(VpnUser & { vpnServer: VpnServer | null }) | undefined>;
   createVpnUser(user: InsertVpnUser): Promise<VpnUser>;
   updateVpnUser(id: number, user: Partial<InsertVpnUser>): Promise<VpnUser>;
   getActiveSessions(): Promise<(Session & { vpnUser: VpnUser, vpnServer: VpnServer | null })[]>;
@@ -87,8 +87,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getVpnUsers(): Promise<VpnUser[]> {
-    return await db.select().from(vpnUsers).orderBy(desc(vpnUsers.lastConnected));
+  async getVpnUsers(): Promise<(VpnUser & { vpnServer: VpnServer | null })[]> {
+    return await db.query.vpnUsers.findMany({
+      with: { vpnServer: true },
+      orderBy: desc(vpnUsers.lastConnected),
+    });
   }
 
   async getVpnUserByCommonNameAndServer(
@@ -107,9 +110,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getVpnUser(id: number): Promise<VpnUser | undefined> {
-    const [user] = await db.select().from(vpnUsers).where(eq(vpnUsers.id, id));
-    return user;
+  async getVpnUser(id: number): Promise<(VpnUser & { vpnServer: VpnServer | null }) | undefined> {
+    return await db.query.vpnUsers.findFirst({
+      where: eq(vpnUsers.id, id),
+      with: { vpnServer: true },
+    });
   }
 
   async createVpnUser(user: InsertVpnUser): Promise<VpnUser> {

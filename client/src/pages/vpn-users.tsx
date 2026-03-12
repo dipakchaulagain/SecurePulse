@@ -138,6 +138,7 @@ export default function VpnUsersPage() {
                   <TableHead>Full Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Account Status</TableHead>
+                  <TableHead>VPN Server</TableHead>
                   <TableHead>Connection</TableHead>
                   <TableHead>Last Connected</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -146,7 +147,7 @@ export default function VpnUsersPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                       <div className="flex justify-center items-center">
                         <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
                         Loading directory...
@@ -156,7 +157,7 @@ export default function VpnUsersPage() {
                 ) : paginatedUsers?.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="h-24 text-center text-muted-foreground"
                     >
                       No users found.
@@ -198,6 +199,11 @@ export default function VpnUsersPage() {
                               user.accountStatus === "EXPIRED" ? "bg-amber-500" : "bg-muted-foreground"
                             }`} />
                           {user.accountStatus || "Unknown"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-[10px] font-mono">
+                          {user.vpnServer?.name || user.serverId || "Unknown"}
                         </Badge>
                       </TableCell>
                       <TableCell>

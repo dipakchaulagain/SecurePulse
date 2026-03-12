@@ -99,14 +99,14 @@ export const api = {
       method: 'GET' as const,
       path: '/api/vpn-users' as const,
       responses: {
-        200: z.array(z.custom<typeof vpnUsers.$inferSelect>()),
+        200: z.array(z.custom<typeof vpnUsers.$inferSelect & { vpnServer: typeof vpnServers.$inferSelect | null }>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/vpn-users/:id' as const,
       responses: {
-        200: z.custom<typeof vpnUsers.$inferSelect>(),
+        200: z.custom<typeof vpnUsers.$inferSelect & { vpnServer: typeof vpnServers.$inferSelect | null }>(),
         404: errorSchemas.notFound,
       },
     },

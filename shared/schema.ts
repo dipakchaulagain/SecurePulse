@@ -82,8 +82,12 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   }),
 }));
 
-export const vpnUsersRelations = relations(vpnUsers, ({ many }) => ({
+export const vpnUsersRelations = relations(vpnUsers, ({ many, one }) => ({
   sessions: many(sessions),
+  vpnServer: one(vpnServers, {
+    fields: [vpnUsers.serverId],
+    references: [vpnServers.serverId],
+  }),
 }));
 
 export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
