@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -47,143 +48,141 @@ export function Layout({ children }: LayoutProps) {
     { name: "Accounting", href: "/accounting", icon: History },
   ];
 
-  // Only admins see these
   const adminNavigation = [
     { name: "Portal Users", href: "/portal-users", icon: ShieldAlert },
     { name: "VPN Servers", href: "/vpn-servers", icon: Network },
     { name: "Audit Logs", href: "/audit", icon: History },
   ];
 
-  // Admin-only navigation items
-  const allNav = user?.role === 'admin'
+  const allNav = user?.role === "admin"
     ? [...navigation, ...adminNavigation]
-    : navigation; // operator and readonly see the same base nav
+    : navigation;
 
   const isActive = (path: string) => location === path;
 
+  const roleLabel =
+    user?.role === "readonly" ? "Read Only" :
+    user?.role === "operator" ? "Operator" :
+    user?.role === "admin" ? "Administrator" : user?.role;
+
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row">
+    <div className="min-h-screen bg-muted/30 flex flex-col md:flex-row">
+
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b bg-card">
-        <div className="flex items-center gap-2 font-bold text-lg text-primary">
-          <Network className="w-6 h-6" />
-          <span>OpenVPN Monitor</span>
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b bg-card shadow-sm">
+        <div className="flex items-center gap-2 font-bold text-base text-foreground">
+          <Shield className="w-5 h-5 text-primary" />
+          <span>SecurePulse</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X /> : <Menu />}
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </Button>
       </div>
 
-      {/* Global Header (Clock & User) */}
-      <div className="hidden md:flex fixed top-0 right-0 left-64 h-16 bg-card border-b z-40 items-center justify-between px-6">
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Current Time</span>
-            <span className="text-sm font-mono font-bold text-primary">
-              {format(currentTime, "PPPP HH:mm:ss")}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+      {/* Top Bar */}
+      <div className="hidden md:flex fixed top-0 right-0 left-56 h-12 bg-card/95 backdrop-blur-sm border-b border-border/50 z-40 items-center justify-between px-5">
+        <span className="text-xs font-mono text-muted-foreground tabular-nums">
+          {format(currentTime, "EEE, MMM d yyyy  ·  HH:mm:ss")}
+        </span>
+        <div className="flex items-center gap-2.5">
           <div className="text-right">
-            <p className="text-sm font-medium leading-none">{user?.username}</p>
-            <p className="text-xs text-muted-foreground mt-1 capitalize">
-              {user?.role === "readonly" ? "Read Only" : user?.role}
-            </p>
+            <p className="text-xs font-semibold leading-none">{user?.username}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{roleLabel}</p>
           </div>
-          <Avatar className="w-9 h-9 border border-border">
-            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+          <Avatar className="w-7 h-7 border border-border/60">
+            <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-bold">
               {user?.username.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </div>
       </div>
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r shadow-lg transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:translate-x-0 md:static md:flex md:flex-col",
+        "fixed inset-y-0 left-0 z-50 w-56 bg-card border-r border-border/50 shadow-md flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:translate-x-0 md:static",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="p-6 border-b flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-            <Network className="w-6 h-6" />
+        {/* Brand */}
+        <div className="px-4 py-4 border-b border-border/50 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <Shield className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">SecurePulse</h1>
-            <p className="text-xs text-muted-foreground">System Manager</p>
+            <h1 className="font-bold text-sm leading-tight">SecurePulse</h1>
+            <p className="text-[10px] text-muted-foreground">Telemetry Manager</p>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
           {allNav.map((item) => (
             <Link key={item.name} href={item.href}>
               <motion.div
-                whileHover={{ x: 2 }}
-                transition={{ duration: 0.15 }}
+                whileHover={{ x: 1 }}
+                transition={{ duration: 0.12 }}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
+                  "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer",
                   isActive(item.href)
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-4 h-4 shrink-0" />
                 {item.name}
               </motion.div>
             </Link>
           ))}
         </nav>
 
-        <div className="p-4 border-t bg-card/50">
+        {/* User footer */}
+        <div className="px-3 py-3 border-t border-border/50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-accent transition-colors outline-none">
-                <Avatar className="w-9 h-9 border border-border">
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              <button className="flex items-center gap-2.5 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors outline-none">
+                <Avatar className="w-7 h-7 border border-border/60 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-bold">
                     {user?.username.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium leading-none">{user?.username}</p>
-                  <p className="text-xs text-muted-foreground mt-1 capitalize">
-                    {user?.role === "readonly" ? "Read Only" : user?.role}
-                  </p>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-xs font-semibold leading-none truncate">{user?.username}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{roleLabel}</p>
                 </div>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="text-xs">My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer" onClick={() => logout()}>
-                <LogOut className="mr-2 w-4 h-4" />
-                Log out
+              <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer text-xs" onClick={() => logout()}>
+                <LogOut className="mr-2 w-3.5 h-3.5" />
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)] md:h-screen pt-4 md:pt-20 p-4 md:p-6 bg-muted/20">
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto h-[calc(100vh-49px)] md:h-screen pt-3 md:pt-14 px-4 md:px-5 pb-5 bg-muted/30">
         <AnimatePresence mode="wait">
           <motion.div
             key={location}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="space-y-6"
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="space-y-4 pt-3"
           >
             {children}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Mobile Menu Backdrop */}
+      {/* Mobile backdrop */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}

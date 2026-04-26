@@ -69,30 +69,30 @@ export default function PortalUsersPage() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <Card>
-        <CardHeader>
+      <Card className="shadow-sm border-border/40">
+        <CardHeader className="px-4 pt-4 pb-3 border-b border-border/30">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Portal Users</CardTitle>
-              <CardDescription className="mt-1">Manage users with login access to this web interface.</CardDescription>
+              <CardTitle className="text-sm font-semibold">Portal Users</CardTitle>
+              <CardDescription className="text-[11px]">Manage users with login access to this web interface.</CardDescription>
             </div>
             <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="p-0">
+          <div>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="hover:bg-transparent bg-muted/40 border-b border-border/30">
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">Username</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">Full Name</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">Email</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">Role</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">Status</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">Created</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -165,16 +165,16 @@ export default function VpnUsersPage() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4">
+      <Card className="shadow-sm border-border/40">
+        <CardHeader className="px-4 pt-4 pb-3 border-b border-border/30">
+          <div className="flex flex-col gap-3">
             {/* Title row */}
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>User Directory</CardTitle>
-                <CardDescription className="mt-1">
+                <CardTitle className="text-sm font-semibold">User Directory</CardTitle>
+                <CardDescription className="text-[11px]">
                   Historical usage stats and current status for all VPN users.
                 </CardDescription>
               </div>
@@ -305,15 +305,10 @@ export default function VpnUsersPage() {
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Common Name</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Account Status</TableHead>
-                  <TableHead>VPN Server</TableHead>
-                  <TableHead>Connection</TableHead>
-                  <TableHead>Last Connected</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="hover:bg-transparent bg-muted/40 border-b border-border/30">
+                  {["Common Name","Full Name","Type","Account Status","VPN Server","Connection","Last Connected","Actions"].map((h,i) => (
+                    <TableHead key={h} className={`text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9 ${i===7?"text-right":""}`}>{h}</TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
