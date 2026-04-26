@@ -82,7 +82,7 @@ export async function registerRoutes(
   });
 
   app.patch(api.users.update.path, async (req, res) => {
-    if (!req.isAuthenticated() || req.user?.role !== 'admin') return res.sendStatus(401);
+    if (!req.isAuthenticated() || req.user?.role !== 'admin') return res.sendStatus(403);
     const id = parseInt(req.params.id);
     const input = api.users.update.input.parse(req.body);
     const user = await storage.updateUser(id, input);
@@ -94,6 +94,46 @@ export async function registerRoutes(
       details: `Updated user ${user.username}`
     });
     res.json(user);
+  });
+
+  app.delete("/api/users/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== 'admin') return res.sendStatus(403);
+    const id = parseInt(req.params.id);
+    if (id === (req.user as User).id) {
+      return res.status(400).json({ message: "Cannot delete your own account" });
+    }
+    const target = await storage.getUser(id);
+    if (!target) return res.status(404).json({ message: "User not found" });
+    await storage.deleteUser(id);
+    await storage.createAuditLog({
+      userId: (req.user as User).id,
+      action: "DELETE",
+      entityType: "user",
+      entityId: String(id),
+      details: `Deleted user ${target.username}`
+    });
+    res.json({ message: "User deleted" });
+  });
+
+  app.post("/api/users/:id/reset-password", async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== 'admin') return res.sendStatus(403);
+    const id = parseInt(req.params.id);
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: "New password must be at least 8 characters" });
+    }
+    const target = await storage.getUser(id);
+    if (!target) return res.status(404).json({ message: "User not found" });
+    const hashed = await hashPassword(newPassword);
+    await storage.updateUser(id, { password: hashed, mustChangePassword: true } as any);
+    await storage.createAuditLog({
+      userId: (req.user as User).id,
+      action: "RESET_PASSWORD",
+      entityType: "user",
+      entityId: String(id),
+      details: `Admin reset password for user ${target.username}`
+    });
+    res.json({ message: "Password reset successfully" });
   });
 
   app.get(api.vpnUsers.list.path, async (req, res) => {
@@ -110,7 +150,7 @@ export async function registerRoutes(
   });
 
   app.patch(api.vpnUsers.update.path, async (req, res) => {
-    if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+    if (!req.isAuthenticated() || (req.user?.role !== 'admin' && req.user?.role !== 'operator')) {
       return res.sendStatus(403);
     }
     const id = parseInt(req.params.id);
@@ -188,7 +228,7 @@ export async function registerRoutes(
   // ==========================================
 
   app.get(api.vpnServers.list.path, async (req, res) => {
-    if (!req.isAuthenticated() || req.user?.role !== 'admin') return res.sendStatus(403);
+    if (!req.isAuthenticated()) return res.sendStatus(401);
     const servers = await storage.getVpnServers();
     res.json(servers);
   });

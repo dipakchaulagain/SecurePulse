@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -53,9 +54,10 @@ export function Layout({ children }: LayoutProps) {
     { name: "Audit Logs", href: "/audit", icon: History },
   ];
 
+  // Admin-only navigation items
   const allNav = user?.role === 'admin'
     ? [...navigation, ...adminNavigation]
-    : navigation;
+    : navigation; // operator and readonly see the same base nav
 
   const isActive = (path: string) => location === path;
 
@@ -85,7 +87,9 @@ export function Layout({ children }: LayoutProps) {
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-sm font-medium leading-none">{user?.username}</p>
-            <p className="text-xs text-muted-foreground mt-1 capitalize">{user?.role}</p>
+            <p className="text-xs text-muted-foreground mt-1 capitalize">
+              {user?.role === "readonly" ? "Read Only" : user?.role}
+            </p>
           </div>
           <Avatar className="w-9 h-9 border border-border">
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
@@ -97,7 +101,7 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Sidebar Navigation */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r shadow-lg transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:flex md:flex-col",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r shadow-lg transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:translate-x-0 md:static md:flex md:flex-col",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-6 border-b flex items-center gap-3">
@@ -113,7 +117,9 @@ export function Layout({ children }: LayoutProps) {
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {allNav.map((item) => (
             <Link key={item.name} href={item.href}>
-              <div
+              <motion.div
+                whileHover={{ x: 2 }}
+                transition={{ duration: 0.15 }}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
                   isActive(item.href)
@@ -124,7 +130,7 @@ export function Layout({ children }: LayoutProps) {
               >
                 <item.icon className="w-5 h-5" />
                 {item.name}
-              </div>
+              </motion.div>
             </Link>
           ))}
         </nav>
@@ -140,7 +146,9 @@ export function Layout({ children }: LayoutProps) {
                 </Avatar>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium leading-none">{user?.username}</p>
-                  <p className="text-xs text-muted-foreground mt-1 capitalize">{user?.role}</p>
+                  <p className="text-xs text-muted-foreground mt-1 capitalize">
+                    {user?.role === "readonly" ? "Read Only" : user?.role}
+                  </p>
                 </div>
               </button>
             </DropdownMenuTrigger>
@@ -158,9 +166,18 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)] md:h-screen pt-4 md:pt-20 p-4 md:p-6 bg-muted/20">
-        <div className="space-y-6">
-          {children}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="space-y-6"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Mobile Menu Backdrop */}

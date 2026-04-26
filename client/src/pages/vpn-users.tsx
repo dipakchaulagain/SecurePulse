@@ -1,4 +1,5 @@
 import { useVpnUsers, useUpdateVpnUser } from "@/hooks/use-data";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import {
   Table,
@@ -68,7 +69,12 @@ export default function VpnUsersPage() {
   }, [search, onlineOnly, serverFilter, accountStatusFilter]);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="space-y-6"
+    >
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -239,7 +245,7 @@ export default function VpnUsersPage() {
                               View
                             </Button>
                           </Link>
-                          {currentUser?.role === "admin" && (
+                          {(currentUser?.role === "admin" || currentUser?.role === "operator") && (
                             <Button
                               size="xs"
                               variant="ghost"
@@ -301,116 +307,105 @@ export default function VpnUsersPage() {
         </CardContent>
       </Card>
 
-      {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-card shadow-lg border p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold">Edit VPN User</h2>
-                <p className="text-xs text-muted-foreground">
-                  Common Name is immutable; update metadata only.
-                </p>
+      <AnimatePresence>
+        {editingUser && (
+          <motion.div
+            key="edit-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full max-w-md rounded-xl bg-card shadow-lg border p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold">Edit VPN User</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Common Name is immutable; update metadata only.
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setEditingUser(null)}>
+                  Cancel
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setEditingUser(null)}
-              >
-                Cancel
-              </Button>
-            </div>
 
-            <div className="space-y-3">
-              <div className="space-y-1 text-sm">
-                <label className="text-muted-foreground">Full Name</label>
-                <Input
-                  value={editingUser.fullName}
-                  onChange={(e) =>
-                    setEditingUser({
-                      ...editingUser,
-                      fullName: e.target.value,
-                    })
-                  }
-                />
+              <div className="space-y-3">
+                <div className="space-y-1 text-sm">
+                  <label className="text-muted-foreground">Full Name</label>
+                  <Input
+                    value={editingUser.fullName}
+                    onChange={(e) => setEditingUser({ ...editingUser, fullName: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1 text-sm">
+                  <label className="text-muted-foreground">Email</label>
+                  <Input
+                    type="email"
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1 text-sm">
+                  <label className="text-muted-foreground">User Type</label>
+                  <Select
+                    value={editingUser.type}
+                    onValueChange={(val) => setEditingUser({ ...editingUser, type: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Employee">Employee</SelectItem>
+                      <SelectItem value="Vendor">Vendor</SelectItem>
+                      <SelectItem value="Client">Client</SelectItem>
+                      <SelectItem value="Others">Others</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <label className="text-muted-foreground">Contact (optional)</label>
+                  <Input
+                    value={editingUser.contact}
+                    onChange={(e) => setEditingUser({ ...editingUser, contact: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="space-y-1 text-sm">
-                <label className="text-muted-foreground">Email</label>
-                <Input
-                  type="email"
-                  value={editingUser.email}
-                  onChange={(e) =>
-                    setEditingUser({
-                      ...editingUser,
-                      email: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-1 text-sm">
-                <label className="text-muted-foreground">User Type</label>
-                <Select
-                  value={editingUser.type}
-                  onValueChange={(val) => setEditingUser({ ...editingUser, type: val })}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" size="sm" onClick={() => setEditingUser(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={updateMutation.isPending}
+                  onClick={() => {
+                    updateMutation.mutate(
+                      {
+                        id: editingUser.id,
+                        fullName: editingUser.fullName || null,
+                        email: editingUser.email || null,
+                        contact: editingUser.contact || null,
+                        type: editingUser.type,
+                      },
+                      { onSuccess: () => setEditingUser(null) }
+                    );
+                  }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Employee">Employee</SelectItem>
-                    <SelectItem value="Vendor">Vendor</SelectItem>
-                    <SelectItem value="Client">Client</SelectItem>
-                    <SelectItem value="Others">Others</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                  Save
+                </Button>
               </div>
-              <div className="space-y-1 text-sm">
-                <label className="text-muted-foreground">
-                  Contact (optional)
-                </label>
-                <Input
-                  value={editingUser.contact}
-                  onChange={(e) =>
-                    setEditingUser({
-                      ...editingUser,
-                      contact: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditingUser(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                disabled={updateMutation.isPending}
-                onClick={() => {
-                  updateMutation.mutate(
-                    {
-                      id: editingUser.id,
-                      fullName: editingUser.fullName || null,
-                      email: editingUser.email || null,
-                      contact: editingUser.contact || null,
-                      type: editingUser.type,
-                    },
-                    {
-                      onSuccess: () => setEditingUser(null),
-                    },
-                  );
-                }}
-              >
-                Save
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

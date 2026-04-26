@@ -171,6 +171,59 @@ export function useUpdatePortalUser() {
       queryClient.invalidateQueries({ queryKey: [api.users.list.path] });
       toast({ title: "User updated successfully" });
     },
+    onError: (err) => {
+      toast({ title: "Failed to update user", description: err instanceof Error ? err.message : undefined, variant: "destructive" });
+    },
+  });
+}
+
+export function useDeletePortalUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.users.delete.path, { id });
+      const res = await fetch(url, {
+        method: api.users.delete.method,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "Failed to delete user");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.users.list.path] });
+      toast({ title: "User deleted successfully" });
+    },
+    onError: (err) => {
+      toast({ title: "Failed to delete user", description: err instanceof Error ? err.message : undefined, variant: "destructive" });
+    },
+  });
+}
+
+export function useResetPortalUserPassword() {
+  return useMutation({
+    mutationFn: async ({ id, newPassword }: { id: number; newPassword: string }) => {
+      const url = buildUrl(api.users.resetPassword.path, { id });
+      const res = await fetch(url, {
+        method: api.users.resetPassword.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "Failed to reset password");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Password reset successfully", description: "User will be required to change password on next login." });
+    },
+    onError: (err) => {
+      toast({ title: "Failed to reset password", description: err instanceof Error ? err.message : undefined, variant: "destructive" });
+    },
   });
 }
 
