@@ -335,8 +335,14 @@ export function useRegenerateVpnServerKey() {
 }
 
 export function useVpnUserAuditLogs(id: number) {
+  const url = buildUrl(api.vpnUsers.auditLogs.path, { id });
   return useQuery({
-    queryKey: [buildUrl(api.vpnUsers.auditLogs.path, { id })],
+    queryKey: [url],
+    queryFn: async () => {
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch audit logs");
+      return res.json();
+    },
     enabled: !!id,
   });
 }
